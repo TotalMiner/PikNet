@@ -102,6 +102,61 @@ namespace TotalMiner_Network.Classes
             this.RunThread.Start();
             this.SessionOpen = true;
         }
+        public void CloseSession()
+        {
+            SessionOpen = false;
+            DoRunThread = false;
+            for (int i = 0; i < Players.Count; i++)
+            {
+                Player cPlayer = Players[i];
+                try
+                {
+                    if (cPlayer.Connected)
+                        cPlayer.Connection.Close();
+                }
+                catch
+                {
+                    Console.WriteLine($"[SESSION] (shutdown) \"{this.HostName}\" could not close Player \"{cPlayer.Name}\"'s connection.  This is probably OK");
+                }
+            }
+            Players.Clear();
+        }
+
+        public bool AddPlayer(Player target)
+        {
+            lock (Players)
+            {
+                if (!DoesPlayerExist(target.PID) && SessionOpen)
+                {
+                    if (target.PID <= 0)
+                        return false;
+                    if (target.IsHost)
+                        this.HostPlayer = target;
+                    Players.Add(target);
+                    ProcessOut_SendAll_PlayerJoined(target);
+                    //Console.WriteLine($"[SESSION] Session \"{target.Name}\" Added To Session \"{this.HostName}\" (PID: {target.PID})");
+                    return true;
+                }
+                return false;
+            }
+        }
+        public bool DoesPlayerExist(short pid)
+        {
+            for (int i = 0; i < Players.Count; i++)
+                if (Players[i].PID == pid)
+                    return true;
+            return false;
+        }
+        public Player GetPlayerByID(short pid)
+        {
+            for (int i = 0; i < Players.Count; i++)
+            {
+                Player cPlayer = Players[i];
+                if (cPlayer.PID == pid)
+                    return cPlayer;
+            }
+            return null;
+        }
         #endregion
 
         #region Priority Methods
@@ -186,7 +241,6 @@ namespace TotalMiner_Network.Classes
         }
         #endregion
 
-        
         private void ProcessPlayerData(Player target)
         {
             PacketType type = (PacketType)target.Reader.ReadByte();
@@ -354,62 +408,6 @@ namespace TotalMiner_Network.Classes
             }
         }
 
-        public bool AddPlayer(Player target)
-        {
-            lock (Players)
-            {
-                if (!DoesPlayerExist(target.PID) && SessionOpen)
-                {
-                    if (target.PID <= 0)
-                        return false;
-                    if (target.IsHost)
-                        this.HostPlayer = target;
-                    Players.Add(target);
-                    ProcessOut_SendAll_PlayerJoined(target);
-                    //Console.WriteLine($"[SESSION] Session \"{target.Name}\" Added To Session \"{this.HostName}\" (PID: {target.PID})");
-                    return true;
-                }
-                return false;
-            }
-        }
-        public bool DoesPlayerExist(short pid)
-        {
-            for (int i = 0; i < Players.Count; i++)
-                if (Players[i].PID == pid)
-                    return true;
-            return false;
-        }
-        public Player GetPlayerByID(short pid)
-        {
-            for (int i = 0; i < Players.Count; i++)
-            {
-                Player cPlayer = Players[i];
-                if (cPlayer.PID == pid)
-                    return cPlayer;
-            }
-            return null;
-        }
-
-        public void CloseSession()
-        {
-            //Console.WriteLine($"[SESSION] Session \"{this.HostName}\" Shutting Down");
-
-            SessionOpen = false;
-            DoRunThread = false;
-            for (int i = 0; i < Players.Count; i++)
-            {
-                Player cPlayer = Players[i];
-                try
-                {
-                    if (cPlayer.Connected)
-                        cPlayer.Connection.Close();
-                }
-                catch
-                {
-                    Console.WriteLine($"[SESSION] (shutdown) \"{this.HostName}\" could not close Player \"{cPlayer.Name}\"'s connection.  This is probably OK");
-                }
-            }
-            Players.Clear();
-        }
+ 
     }
 }

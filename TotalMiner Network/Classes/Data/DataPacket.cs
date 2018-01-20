@@ -12,7 +12,10 @@ namespace TotalMiner_Network.Classes.Data
         {
             Data = new byte[size];
             _Position = (int*)0;
+            OptionalTarget = 0;
+            OptionalSender = 0;
         }
+
         private byte[] Data;
         private int* _Position;
         public int Position
@@ -27,19 +30,22 @@ namespace TotalMiner_Network.Classes.Data
             }
         }
 
-        public unsafe byte ReadByte()
+        public short OptionalTarget;
+        public short OptionalSender;
+
+        public byte ReadByte()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 1);
             return Data[(int)dp++];
         }
-        public unsafe sbyte ReadSByte()
+        public sbyte ReadSByte()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)dp + 1;
             return (sbyte)Data[(int)dp++];
         }
-        public unsafe byte[] ReadBytes(int len)
+        public byte[] ReadBytes(int len)
         {
             byte[] _data = new byte[len];
             byte* dp = (byte*)_Position;
@@ -47,43 +53,43 @@ namespace TotalMiner_Network.Classes.Data
             Buffer.BlockCopy(Data, (int)dp, _data, 0, len);
             return _data;
         }
-        public unsafe short ReadShort()
+        public short ReadShort()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 2);
             return (short)(Data[(int)dp++] | (Data[(int)dp++] << 8));
         }
-        public unsafe ushort ReadUShort()
+        public ushort ReadUShort()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 2);
             return (ushort)(Data[(int)dp++] | (Data[(int)dp++] << 8));
         }
-        public unsafe int ReadInt32()
+        public int ReadInt32()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 4);
             return (int)(Data[(int)dp++] | (Data[(int)dp++] << 8) | (Data[(int)dp++] << 16) | (Data[(int)dp++] << 24));
         }
-        public unsafe uint ReadUInt32()
+        public uint ReadUInt32()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 4);
             return (uint)(Data[(int)dp++] | (Data[(int)dp++] << 8) | (Data[(int)dp++] << 16) | (Data[(int)dp++] << 24));
         }
-        public unsafe long ReadInt64()
+        public long ReadInt64()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 8);
             return (long)(Data[(int)dp++] | ((long)Data[(int)dp++] << 8) | ((long)Data[(int)dp++] << 16) | ((long)Data[(int)dp++] << 24) | ((long)Data[(int)dp++] << 32) | ((long)Data[(int)dp++] << 40) | ((long)Data[(int)dp++] << 48) | ((long)Data[(int)dp++] << 56));
         }
-        public unsafe ulong ReadUInt64()
+        public ulong ReadUInt64()
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 8);
             return (ulong)(Data[(int)dp++] | ((ulong)Data[(int)dp++] << 8) | ((ulong)Data[(int)dp++] << 16) | ((ulong)Data[(int)dp++] << 24) | ((ulong)Data[(int)dp++] << 32) | ((ulong)Data[(int)dp++] << 40) | ((ulong)Data[(int)dp++] << 48) | ((ulong)Data[(int)dp++] << 56));
         }
-        public unsafe int Read7BitEncodedInt()
+        public int Read7BitEncodedInt()
         {
             int num = 0;
             int num2 = 0;

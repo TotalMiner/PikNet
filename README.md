@@ -3,6 +3,10 @@ Total Miner MP: Server Program
 
 Built in Visual Studio 2017 Enterprise.  Targetting .NET Framework 4.6.1
 
+
+# TODO
+* End session if the host backs out of lobby screen (both mod and server code)
+
 # Security To Be Addressed
 * Handshakes
 * Invalid Packets

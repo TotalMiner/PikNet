@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-namespace TotalMiner_Network.Classes.Data
+namespace TotalMiner_Network.Core.Data
 {
     public class MemBuffer
     {

@@ -23,8 +23,6 @@ public enum CustomTMDataPacket
 {
 
 }
-
-
 public enum TotalMinerGamePacketType : byte
 {
     None,

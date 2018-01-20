@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TotalMiner_Network.Classes.Data
+namespace TotalMiner_Network.Core.Data
 {
-    public unsafe struct DataPacket
+    public unsafe struct DataPacketReader
     {
-        public DataPacket(int size)
+        public DataPacketReader(int size)
         {
             Data = new byte[size];
             _Position = (int*)0;

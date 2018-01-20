@@ -44,22 +44,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Data\DataPacket.cs" />
-    <Compile Include="Classes\Enums.cs" />
-    <Compile Include="Classes\Data\GlobalPoint3D.cs" />
-    <Compile Include="Classes\Data\MemBuffer.cs" />
-    <Compile Include="Classes\Player.cs" />
-    <Compile Include="Classes\Session.cs" />
-    <Compile Include="Classes\Data\Vector3.cs" />
+    <Compile Include="Core\Data\DataPacketReader.cs" />
+    <Compile Include="Core\Enum\Enums.cs" />
+    <Compile Include="Core\Data\GlobalPoint3D.cs" />
+    <Compile Include="Core\Data\MemBuffer.cs" />
+    <Compile Include="Core\Classes\Player.cs" />
+    <Compile Include="Core\Network\Session.cs" />
+    <Compile Include="Core\Data\Vector3.cs" />
     <Compile Include="Extensions\ServerExtensions.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Core\Network\Server.cs" />
+    <Compile Include="Application\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Network\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

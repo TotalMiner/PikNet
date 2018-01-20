@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net.Sockets;
 using TotalMiner_Network.Extensions;
-using TotalMiner_Network.Classes.Data;
+using TotalMiner_Network.Core.Data;
 
-namespace TotalMiner_Network.Classes
+namespace TotalMiner_Network.Core.Classes
 {
     public class Player
     {

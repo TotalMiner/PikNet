@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using TotalMiner_Network.Extensions;
-using TotalMiner_Network.Classes.Data;
-namespace TotalMiner_Network.Classes
+using TotalMiner_Network.Core.Data;
+using TotalMiner_Network.Core.Classes;
+namespace TotalMiner_Network.Core.Network
 {
     public class Session
     {
@@ -242,6 +243,9 @@ namespace TotalMiner_Network.Classes
         }
         #endregion
 
+        #region Processing Data
+
+        #region General Data Processing [IN]
         private void ProcessPlayerData(Player target)
         {
             PacketType type = (PacketType)target.Reader.ReadByte();
@@ -258,6 +262,9 @@ namespace TotalMiner_Network.Classes
             }
 
         }
+        #endregion
+
+        #region TM Processing [IN]
         private void ProcessPlayerData_TMData(Player sourcePlayer)
         {
             short target = sourcePlayer.Reader.ReadInt16();
@@ -274,6 +281,9 @@ namespace TotalMiner_Network.Classes
                 ProcessOut_Send_TMDataToPlayer(sourcePlayer, targetPlayer, _data);
 
         }
+        #endregion
+
+        #region TM Processing [OUT]
         private void ProcessOut_SendAll_TMData(byte[] _data, Player sourcePlayer)
         {
             for (int i = 0; i < Players.Count; i++)
@@ -291,7 +301,9 @@ namespace TotalMiner_Network.Classes
             targetPlayer.OutBuffer.Add(_data);
             targetPlayer.OutBuffer.Commit();
         }
+        #endregion
 
+        #region Internal Processing [IN]
         private void ProcessPlayerData_Internal(Player sourcePlayer)
         {
             short sender = sourcePlayer.Reader.ReadInt16();
@@ -336,7 +348,9 @@ namespace TotalMiner_Network.Classes
                 ProcessOut_SendAll_SessionEnd(NetworkSessionEndReason.HostEndedSession);
             }
         }
+        #endregion
 
+        #region Internal Processing [OUT]
         private void ProcessOut_SendAll_SessionEnd(NetworkSessionEndReason reason)
         {
             for (int i = 0; i < Players.Count; i++)
@@ -355,7 +369,6 @@ namespace TotalMiner_Network.Classes
                 }
             }
         }
-
         private void ProcessOut_SendAll_SessionStateUpdate(Player sourcePlayer, NetworkSessionState newState)
         {
             for (int i = 0; i < Players.Count; i++)
@@ -410,7 +423,9 @@ namespace TotalMiner_Network.Classes
                 }
             }
         }
+        #endregion
 
- 
+        #endregion
+
     }
 }

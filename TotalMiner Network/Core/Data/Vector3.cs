@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TotalMiner_Network.Classes.Data
+namespace TotalMiner_Network.Core.Data
 {
     public struct Vector3
     {

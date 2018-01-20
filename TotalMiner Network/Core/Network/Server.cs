@@ -2,71 +2,78 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using TotalMiner_Network.Classes;
-using System.IO;
 using TotalMiner_Network.Extensions;
-//
-namespace TotalMiner_Network
+using TotalMiner_Network.Core.Data;
+using TotalMiner_Network.Core.Classes;
+namespace TotalMiner_Network.Core.Network
 {
-    class Program
+    public class Server
     {
-        private static EventWaitHandle WaitHandler = new EventWaitHandle(false, EventResetMode.AutoReset, Guid.NewGuid().ToString());
+        #region Event
+        private EventWaitHandle WaitHandler = new EventWaitHandle(false, EventResetMode.AutoReset, Guid.NewGuid().ToString());
+        #endregion
 
-        static Thread RunThread;
-        static Thread ListenThread;
+        #region Vars
+        public List<Session> AllSessions;
 
-        static bool ServerRunning = true;
-        static bool ServerAccepting = false;
+        private TcpListener ServerListener;
 
-        static TcpListener Server;
+        private int SessionIDCounter = 0;
 
-        static int GlobalSessionCounter = 0;
+        private Thread RunThread;
+        private Thread ListenThread;
 
-        static List<Session> Sessions;
-        static void Main(string[] args)
+        private bool ServerRunning = true;
+        private bool ServerAccepting = true;
+        #endregion
+
+        #region CTORS
+        public Server(int sessionsCapacity)
         {
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler((object sE, UnhandledExceptionEventArgs sA) =>
-            {
-                //Console.WriteLine(((Exception)sA.ExceptionObject).Message);
-            });
-            
-            Sessions = new List<Session>(32);
+            AllSessions = new List<Session>(sessionsCapacity);
+        }
+        #endregion
 
-            RunThread = new Thread(new ThreadStart(RunMasterServer));
-            ListenThread = new Thread(new ThreadStart(AcceptMasterServer));
+        #region Methods
+        public void CreateThreads(bool start = false)
+        {
+            RunThread = new Thread(new ThreadStart(this.RunMasterServer));
+            ListenThread = new Thread(new ThreadStart(this.AcceptMasterServer));
+            if (start)
+                Start();
+        }
+        public void Start()
+        {
+            ServerListener = new TcpListener(IPAddress.Any, 5786);
+            ServerListener.Start();
             RunThread.Start();
             ListenThread.Start();
-
-            //Console.WriteLine("Not Listening For Commands");
-            while (true)
-            {
-                string cmd = Console.ReadLine();
-                System.Threading.Thread.Sleep(1000);
-            }
         }
+        #endregion
 
-        static void RunMasterServer()
+        #region Threadded Functions
+        private void RunMasterServer()
         {
-            Server = new TcpListener(IPAddress.Any, 5786);
-            Server.Start();
+            
             ServerAccepting = true;
             Console.WriteLine("[MASTER] Server Running");
             while (ServerRunning)
             {
-                if (Sessions.Count > 0)
+                if (AllSessions.Count > 0)
                 {
-                    for (int i = 0; i < Sessions.Count; i++)
+                    for (int i = 0; i < AllSessions.Count; i++)
                     {
-                        Session curSes = Sessions[i];
+                        Session curSes = AllSessions[i];
                         if (!curSes.SessionOpen)
                         {
                             curSes.CloseSession();
-                            
-                            Sessions.Remove(curSes);
+
+                            AllSessions.Remove(curSes);
                             GC.Collect();
                             Console.WriteLine($"[MASTER] Closed and Removed Session \"{curSes.HostName}\"");
                         }
@@ -79,7 +86,7 @@ namespace TotalMiner_Network
                 WaitHandler.WaitOne(1);
             }
         }
-        static void AcceptMasterServer()
+        private void AcceptMasterServer()
         {
             while (true)
             {
@@ -87,22 +94,25 @@ namespace TotalMiner_Network
                 {
                     try
                     {
-                        TcpClient client = Server.AcceptTcpClient();
+                        TcpClient client = ServerListener.AcceptTcpClient();
                         Master_ProcessNewClient(client);
                         //Console.WriteLine("[MASTER] Accepted new TCPClient");
-                    } catch (InvalidOperationException ex)
+                    }
+                    catch (InvalidOperationException ex)
                     {
                         //Console.WriteLine("[MASTER] ServerAcceppt Error");
                         //Console.WriteLine(ex.Message);
                     }
-                
-                   
+
+
                 }
                 System.Threading.Thread.Sleep(0);
             }
         }
+        #endregion
 
-        static void Master_ProcessNewClient(TcpClient targetClient)
+        #region Processing
+        private void Master_ProcessNewClient(TcpClient targetClient)
         {
             //Console.WriteLine("[MASTER] Process New Client");
             BinaryReader reader = new BinaryReader(targetClient.GetStream());
@@ -114,7 +124,7 @@ namespace TotalMiner_Network
                     break;
             }
         }
-        static void Master_Process_Connect(TcpClient target)
+        private void Master_Process_Connect(TcpClient target)
         {
             //Console.WriteLine("[MASTER] Processing New Client Connect");
             BinaryReader reader = new BinaryReader(target.GetStream());
@@ -131,9 +141,9 @@ namespace TotalMiner_Network
                     Master_Process_Connect_JoinSession(target);
                     break;
             }
-        
+
         }
-        static void Master_Process_Connect_JoinSession(TcpClient target)
+        private void Master_Process_Connect_JoinSession(TcpClient target)
         {
             lock (target)
             {
@@ -167,7 +177,7 @@ namespace TotalMiner_Network
                     else
                     {
                         writer.Write(targetSession.Players.Count(x => x.PID != newPlayer.PID));
-                        for (int i = 0; i < targetSession.Players.Count;i++)
+                        for (int i = 0; i < targetSession.Players.Count; i++)
                         {
                             Player cPlayer = targetSession.Players[i];
                             if (cPlayer.PID != newPlayer.PID)
@@ -188,7 +198,7 @@ namespace TotalMiner_Network
                 }
             }
         }
-        static void Master_Process_Connect_CreateSession(TcpClient target)
+        private void Master_Process_Connect_CreateSession(TcpClient target)
         {
             BinaryReader reader = new BinaryReader(target.GetStream());
             BinaryWriter writer = new BinaryWriter(target.GetStream());
@@ -202,7 +212,7 @@ namespace TotalMiner_Network
             Session newSession = new Session(hostName, hostGID, exeVersion, type, state);
             writer.Write((byte)Master_Server_Op_Out.Connect);
             writer.Write((byte)Master_server_ConnectionType.CreateSession);
-            YesNo good = AddSession(newSession)  ? YesNo.Yes : YesNo.No;
+            YesNo good = AddSession(newSession) ? YesNo.Yes : YesNo.No;
 
             writer.Write((byte)good);
             if (good == YesNo.Yes)
@@ -217,7 +227,7 @@ namespace TotalMiner_Network
             else
                 writer.Close();
         }
-        static void Master_Process_Connect_GetSessions(TcpClient target)
+        private void Master_Process_Connect_GetSessions(TcpClient target)
         {
             //Console.WriteLine("[MASTER] Sending Sessions To Target");
             BinaryReader reader = new BinaryReader(target.GetStream());
@@ -232,7 +242,7 @@ namespace TotalMiner_Network
             for (int i = 0; i < sessionsWithVer.Count; i++)
             {
                 Session curSes = sessionsWithVer[i];
-               
+
                 writer.Write(curSes.HostName);
                 writer.Write(curSes.HostGID);
                 writer.Write(curSes.EXEVersion);
@@ -242,19 +252,20 @@ namespace TotalMiner_Network
                 writer.Write((byte)curSes.Sessiontype);
             }
         }
+        #endregion
 
         #region Master Server Methods
-        static bool AddSession(Session target)
+        private bool AddSession(Session target)
         {
-            lock (Sessions)
+            lock (AllSessions)
             {
                 if (target.Sessiontype == NetworkSessionType.PlayerMatch && target.HostName.Length <= 15)
                 {
-                    target.SessionID = GlobalSessionCounter++;
+                    target.SessionID = SessionIDCounter++;
                     target.CreateThreads();
                     target.Start();
-                  
-                    Sessions.Add(target);
+
+                    AllSessions.Add(target);
                     //Console.WriteLine($"Added New Session: {target.HostName}");
                     return true;
                 }
@@ -262,19 +273,19 @@ namespace TotalMiner_Network
                 return false;
             }
         }
-        static Session GetSession(int id)
+        private Session GetSession(int id)
         {
-            for (int i = 0; i < Sessions.Count; i++)
-                if (Sessions[i].SessionID == id)
-                    return Sessions[i];
+            for (int i = 0; i < AllSessions.Count; i++)
+                if (AllSessions[i].SessionID == id)
+                    return AllSessions[i];
             return null;
         }
-        static List<Session> GetSessionsWithEXEVersion(int ver)
+        private List<Session> GetSessionsWithEXEVersion(int ver)
         {
             List<Session> toRet = new List<Session>();
-            for (int i = 0; i < Sessions.Count; i++)
+            for (int i = 0; i < AllSessions.Count; i++)
             {
-                Session session = Sessions[i];
+                Session session = AllSessions[i];
                 if (session.EXEVersion == ver && session.SessionOpen)
                     toRet.Add(session);
             }

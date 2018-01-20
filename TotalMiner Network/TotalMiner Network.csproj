@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -30,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -42,12 +44,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Data\DataPacket.cs" />
     <Compile Include="Classes\Enums.cs" />
-    <Compile Include="Classes\DataClasses\GlobalPoint3D.cs" />
-    <Compile Include="Classes\DataClasses\MemBuffer.cs" />
+    <Compile Include="Classes\Data\GlobalPoint3D.cs" />
+    <Compile Include="Classes\Data\MemBuffer.cs" />
     <Compile Include="Classes\Player.cs" />
     <Compile Include="Classes\Session.cs" />
-    <Compile Include="Classes\DataClasses\Vector3.cs" />
+    <Compile Include="Classes\Data\Vector3.cs" />
     <Compile Include="Extensions\ServerExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

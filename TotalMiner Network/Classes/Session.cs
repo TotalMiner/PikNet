@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using TotalMiner_Network.Extensions;
+using TotalMiner_Network.Classes.Data;
 namespace TotalMiner_Network.Classes
 {
     public class Session
@@ -263,6 +264,8 @@ namespace TotalMiner_Network.Classes
             int len = sourcePlayer.Reader.ReadInt32();
             byte[] _data = sourcePlayer.Reader.ReadBytes(len);
 
+           // DataPacket tp = new DataPacket(len);
+           // tp.SetData(_data);
 
             Player targetPlayer = this.GetPlayerByID(target);
             if (targetPlayer == null || target == 0)

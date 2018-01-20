@@ -11,21 +11,25 @@ namespace TotalMiner_Network.Classes
 {
     public class Session
     {
+        #region Threading Vars
         private EventWaitHandle WaitHandler = new EventWaitHandle(false, EventResetMode.AutoReset, Guid.NewGuid().ToString());
-
-        public static IPAddress IP = IPAddress.Any;
-        public static int Port = 5786;
-
-        public int SessionID;
-
         private Thread RunThread;
         private bool DoRunThread;
+        #endregion
 
+        #region Connection Vars
+        public static IPAddress IP = IPAddress.Any;
+        public static int Port = 5786;
+        #endregion
+
+        #region Session Detail Vars
+        public int SessionID;
         public bool SessionOpen;
 
         private int _EXEVersion;
         private string _HostName;
         private short _HostGID;
+
 
         private NetworkSessionType _SessionType;
         public NetworkSessionType Sessiontype
@@ -66,11 +70,15 @@ namespace TotalMiner_Network.Classes
                 return _HostGID;
             }
         }
+        #endregion
 
+        #region Session Vars
         public Player HostPlayer { get; set; }
         public List<Player> Players { get; set; }
         public List<Player> PlayersToRemove { get; set; }
+        #endregion
 
+        #region CTORS
         public Session(string hostName, short gid, int exevErsion, NetworkSessionType type, NetworkSessionState state)
         {
             Players = new List<Player>(96);
@@ -81,7 +89,9 @@ namespace TotalMiner_Network.Classes
             _SessionType = type;
             _SessionState = state;
         }
+        #endregion
 
+        #region Methods
         public void CreateThreads()
         {
             this.RunThread = new Thread(new ThreadStart(Process));
@@ -92,7 +102,9 @@ namespace TotalMiner_Network.Classes
             this.RunThread.Start();
             this.SessionOpen = true;
         }
+        #endregion
 
+        #region Priority Methods
         private void Process()
         {
             Console.WriteLine($"[SESSION] Session {HostName} Now Processing");
@@ -172,7 +184,9 @@ namespace TotalMiner_Network.Classes
                 WaitHandler.WaitOne(1);
             }
         }
+        #endregion
 
+        
         private void ProcessPlayerData(Player target)
         {
             PacketType type = (PacketType)target.Reader.ReadByte();

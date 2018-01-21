@@ -82,8 +82,8 @@ namespace TotalMiner_Network.Core.Network
         #region CTORS
         public Session(string hostName, short gid, int exevErsion, NetworkSessionType type, NetworkSessionState state)
         {
-            Players = new List<Player>(96);
-            PlayersToRemove = new List<Player>(96);
+            Players = new List<Player>(64);
+            PlayersToRemove = new List<Player>(64);
             _HostName = hostName;
             _HostGID = gid;
             _EXEVersion = exevErsion;

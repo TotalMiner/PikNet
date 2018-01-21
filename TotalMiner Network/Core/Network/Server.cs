@@ -99,7 +99,6 @@ namespace TotalMiner_Network.Core.Network
         #region Processing
         private void Master_ProcessNewClient(TcpClient targetClient)
         {
-            //Console.WriteLine("[MASTER] Process New Client");
             BinaryReader reader = new BinaryReader(targetClient.GetStream());
             Master_Server_Op_In op = (Master_Server_Op_In)reader.ReadByte();
             switch (op)
@@ -111,7 +110,6 @@ namespace TotalMiner_Network.Core.Network
         }
         private void Master_Process_Connect(TcpClient target)
         {
-            //Console.WriteLine("[MASTER] Processing New Client Connect");
             BinaryReader reader = new BinaryReader(target.GetStream());
             Master_server_ConnectionType type = (Master_server_ConnectionType)reader.ReadByte();
             switch (type)
@@ -153,7 +151,9 @@ namespace TotalMiner_Network.Core.Network
                         PID = gid,
                     };
 
-                    YesNo valid = targetSession.AddPlayer(newPlayer) && exeVersion == targetSession.EXEVersion ? YesNo.Yes : YesNo.No;
+                    YesNo valid = targetSession.AddPlayer(newPlayer) && exeVersion == targetSession.EXEVersion 
+                        ? YesNo.Yes 
+                        : YesNo.No;
                     writer.Write((byte)valid);
 
 
@@ -203,10 +203,12 @@ namespace TotalMiner_Network.Core.Network
             if (good == YesNo.Yes)
             {
                 writer.Write(newSession.SessionID);
-                Player newPlayer = new Player(hostName);
-                newPlayer.IsHost = true;
-                newPlayer.PID = hostGID;
-                newPlayer.Connection = target;
+                Player newPlayer = new Player(hostName)
+                {
+                    IsHost = true,
+                    PID = hostGID,
+                    Connection = target
+                };
                 newSession.AddPlayer(newPlayer);
             }
             else
@@ -251,10 +253,8 @@ namespace TotalMiner_Network.Core.Network
                     target.Start();
 
                     AllSessions.Add(target);
-                    //Console.WriteLine($"Added New Session: {target.HostName}");
                     return true;
                 }
-                //Console.WriteLine($"Could not add new session: {target.HostName}");
                 return false;
             }
         }

@@ -193,13 +193,8 @@ namespace TotalMiner_Network.Core.Network
                         for (int i = 0; i < Players.Count; i++)
                         {
                             Player cPlayer = Players[i];
-                            if (cPlayer == null)
+                            if (cPlayer == null || cPlayer.IsBeingRemoved)
                                 continue;
-                            if (cPlayer.PID == 0)
-                            {
-                                throw new Exception($"Player {cPlayer.Name} had an ID of 0.  This is illegal");
-                            }
-
                             if (cPlayer.Connected)
                             {
                                 if (cPlayer.Connection.Available > 0)
@@ -216,15 +211,14 @@ namespace TotalMiner_Network.Core.Network
                                 PlayersToRemove.Add(cPlayer);
                             }
                         }
-                        if (HostPlayer.Connected)
+
+                        for (int i = 0; i < Players.Count; i++)
                         {
-                            for (int i = 0; i < Players.Count; i++)
-                            {
-                                Player cPlayer = Players[i];
-                                if (!cPlayer.IsBeingRemoved && cPlayer.Connected && cPlayer.OutBuffer.DataCount > 0)
-                                    cPlayer.SendData();
-                            }
+                            Player cPlayer = Players[i];
+                            if (cPlayer.OutBuffer.DataCount > 0 && !cPlayer.IsBeingRemoved && cPlayer.Connected)
+                                cPlayer.SendData();
                         }
+
                     }
                     else if (HostPlayer != null || !HostPlayer.Connected)
                     {
@@ -236,7 +230,6 @@ namespace TotalMiner_Network.Core.Network
                 {
                     //Console.WriteLine($"[SESSION] Error In Session \"{this.HostName}\" Processing");
                 }
-
                 WaitHandler.WaitOne(1);
             }
         }

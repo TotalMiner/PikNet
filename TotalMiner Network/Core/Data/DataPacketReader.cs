@@ -89,6 +89,20 @@ namespace TotalMiner_Network.Core.Data
             _Position = (int*)(dp + 8);
             return (ulong)(Data[(int)dp++] | ((ulong)Data[(int)dp++] << 8) | ((ulong)Data[(int)dp++] << 16) | ((ulong)Data[(int)dp++] << 24) | ((ulong)Data[(int)dp++] << 32) | ((ulong)Data[(int)dp++] << 40) | ((ulong)Data[(int)dp++] << 48) | ((ulong)Data[(int)dp++] << 56));
         }
+        public float ReadSingle()
+        {
+            byte* dp = (byte*)_Position;
+            _Position = (int*)(dp + 4);
+            int val = ReadInt32();
+            return *(float*)&val;
+        }
+        public double ReadDouble()
+        {
+            byte* dp = (byte*)_Position;
+            _Position = (int*)(dp + 8);
+            long val = ReadInt64();
+            return *(double*)&val;
+        }
         public int Read7BitEncodedInt()
         {
             int num = 0;

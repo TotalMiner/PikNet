@@ -247,17 +247,25 @@ namespace TotalMiner_Network.Core.Network
         #region General Data Processing [IN]
         private void ProcessPlayerData(Player target)
         {
-            PacketType type = (PacketType)target.Reader.ReadByte();
-            switch (type)
+            try
             {
-                case PacketType.TMData:
-                    ProcessPlayerData_TMData(target);
-                    break;
-                case PacketType.Internal:
-                    ProcessPlayerData_Internal(target);
-                    break;
-                default:
-                    throw new Exception($"[SESSION] Invalid PacketType from Player \"{target.Name}\" In Session \"{this.HostName}\"");
+                PacketType type = (PacketType)target.Reader.ReadByte();
+                switch (type)
+                {
+                    case PacketType.TMData:
+                        ProcessPlayerData_TMData(target);
+                        break;
+                    case PacketType.Internal:
+                        ProcessPlayerData_Internal(target);
+                        break;
+                    default:
+                        throw new Exception($"[SESSION] Invalid PacketType from Player \"{target.Name}\" In Session \"{this.HostName}\"");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Player {target.Name ?? "INVALID_PLAYER" } ProcessPlayerData Failure\tRemoving this player.  Error Message:\r\n{ex.Message}");
+                target.IsBeingRemoved = true;
             }
 
         }

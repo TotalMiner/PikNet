@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Data\DataPacketReader.cs" />
+    <Compile Include="Core\Data\DataPacketWriter.cs" />
     <Compile Include="Core\Enum\Enums.cs" />
     <Compile Include="Core\Data\GlobalPoint3D.cs" />
     <Compile Include="Core\Data\MemBuffer.cs" />
@@ -62,6 +63,8 @@
   <ItemGroup>
     <None Include="Application\App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Core\Structs\ModPacketStructs\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

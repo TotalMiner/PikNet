@@ -37,13 +37,7 @@ namespace TotalMiner_Network.Core.Data
         {
             byte* dp = (byte*)_Position;
             _Position = (int*)(dp + 1);
-            return Data[(int)dp++];
-        }
-        public sbyte ReadSByte()
-        {
-            byte* dp = (byte*)_Position;
-            _Position = (int*)dp + 1;
-            return (sbyte)Data[(int)dp++];
+            return Data[(int)dp];
         }
         public byte[] ReadBytes(int len)
         {
@@ -134,6 +128,5 @@ namespace TotalMiner_Network.Core.Data
         {
             return Data;
         }
-
     }
 }

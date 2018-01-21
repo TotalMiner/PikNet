@@ -12,13 +12,13 @@ namespace TotalMiner_Network.Core.Data
         {
             this.StreamBuffer = new MemoryStream(262144);
             this._Buffer = new List<byte>(262144);
-            this.Data = new Queue<byte[]>(128);
+            this.Data = new Queue<byte[]>(32);
         }
         public MemBuffer(int cap)
         {
             this.StreamBuffer = new MemoryStream(cap);
             this._Buffer = new List<byte>(cap);
-            this.Data = new Queue<byte[]>(128);
+            this.Data = new Queue<byte[]>(32);
         }
 
         private MemoryStream StreamBuffer;

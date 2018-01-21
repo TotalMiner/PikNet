@@ -9,6 +9,6 @@ Built in Visual Studio 2017.  Targetting .NET Framework 4.6.1
 * ~~Make *Accept* async~~
 # Security To Be Addressed
 * Handshakes
-* Invalid Packets
+* ~~Invalid Packets~~
 * Gamer kicks (need to be handled by server or host directly)
 

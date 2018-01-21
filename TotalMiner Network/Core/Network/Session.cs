@@ -32,7 +32,6 @@ namespace TotalMiner_Network.Core.Network
         private string _HostName;
         private short _HostGID;
 
-
         private NetworkSessionType _SessionType;
         public NetworkSessionType Sessiontype
         {
@@ -161,7 +160,7 @@ namespace TotalMiner_Network.Core.Network
         }
         #endregion
 
-        #region Priority Methods
+        #region Session Processing Methods
         private void Process()
         {
             Console.WriteLine($"[SESSION] Session {HostName} Now Processing");

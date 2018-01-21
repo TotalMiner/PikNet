@@ -53,7 +53,7 @@ namespace TotalMiner_Network.Core.Classes
         {
             if (OutBuffer.DataCount > 0)
             {
-                OutBuffer.WriteDataToStream(this.Connection.GetStream(), true);
+                OutBuffer.Write(this.Connection.GetStream(), true);
             }
         }
     }

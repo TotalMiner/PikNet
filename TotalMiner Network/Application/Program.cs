@@ -13,7 +13,6 @@ namespace TotalMiner_Network
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler((object sE, UnhandledExceptionEventArgs sA) =>
@@ -29,7 +28,6 @@ namespace TotalMiner_Network
             while (true)
             {
                 string cmd = Console.ReadLine();
-                
                 System.Threading.Thread.Sleep(1000);
             }
         }

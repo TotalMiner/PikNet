@@ -26,10 +26,8 @@ namespace TotalMiner_Network.Core.Network
         private int SessionIDCounter = 0;
 
         private Thread RunThread;
-        private Thread ListenThread;
 
         private bool ServerRunning = true;
-        private bool ServerAccepting = true;
         #endregion
 
         #region CTORS
@@ -43,7 +41,6 @@ namespace TotalMiner_Network.Core.Network
         public void CreateThreads(bool start = false)
         {
             RunThread = new Thread(new ThreadStart(this.RunMasterServer));
-            ListenThread = new Thread(new ThreadStart(this.AcceptMasterServer));
             if (start)
                 Start();
         }
@@ -52,61 +49,49 @@ namespace TotalMiner_Network.Core.Network
             ServerListener = new TcpListener(IPAddress.Any, 5786);
             ServerListener.Start();
             RunThread.Start();
-            ListenThread.Start();
         }
         #endregion
 
         #region Threadded Functions
         private void RunMasterServer()
         {
-            
-            ServerAccepting = true;
             Console.WriteLine("[MASTER] Server Running");
+
+            #region Async
+            AsyncCallback AcceptClients = new AsyncCallback((IAsyncResult res) => 
+            {
+                try
+                {
+                    TcpClient clientSocket = ServerListener.EndAcceptTcpClient(res);
+                    Master_ProcessNewClient(clientSocket);
+                }
+                catch
+                {
+                    Console.WriteLine("BeginAcceptTcpClient Error");
+                }
+
+            });
+            #endregion
+
             while (ServerRunning)
             {
+                ServerListener.BeginAcceptTcpClient(AcceptClients, ServerListener);
                 if (AllSessions.Count > 0)
                 {
                     for (int i = 0; i < AllSessions.Count; i++)
                     {
+                    
                         Session curSes = AllSessions[i];
                         if (!curSes.SessionOpen)
                         {
                             curSes.CloseSession();
 
                             AllSessions.Remove(curSes);
-                            GC.Collect();
                             Console.WriteLine($"[MASTER] Closed and Removed Session \"{curSes.HostName}\"");
-                        }
-                        else
-                        {
-
                         }
                     }
                 }
                 WaitHandler.WaitOne(1);
-            }
-        }
-        private void AcceptMasterServer()
-        {
-            while (true)
-            {
-                if (ServerAccepting)
-                {
-                    try
-                    {
-                        TcpClient client = ServerListener.AcceptTcpClient();
-                        Master_ProcessNewClient(client);
-                        //Console.WriteLine("[MASTER] Accepted new TCPClient");
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        //Console.WriteLine("[MASTER] ServerAcceppt Error");
-                        //Console.WriteLine(ex.Message);
-                    }
-
-
-                }
-                System.Threading.Thread.Sleep(0);
             }
         }
         #endregion

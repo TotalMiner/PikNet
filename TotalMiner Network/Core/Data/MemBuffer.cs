@@ -20,6 +20,7 @@ namespace TotalMiner_Network.Core.Data
             this._Buffer = new List<byte>(cap);
             this.Data = new Queue<byte[]>(128);
         }
+
         private MemoryStream StreamBuffer;
         private List<byte> _Buffer;
         public Queue<byte[]> Data { get; set; }
@@ -39,7 +40,6 @@ namespace TotalMiner_Network.Core.Data
             }
         }
     
-
         public void Add(byte data)
         {
             _Buffer.Add(data);
@@ -107,7 +107,7 @@ namespace TotalMiner_Network.Core.Data
             Data.Clear();
             _Buffer.Clear();
         }
-        public void WriteDataToStream(Stream xOut, bool allInOneChunk = true)
+        public void Write(Stream xOut, bool allInOneChunk = true)
         {
             if (Data.Count > 0)
             {

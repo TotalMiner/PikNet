@@ -17,5 +17,10 @@ namespace TotalMiner_Network.Core.Data
             this.Y = y;
             this.Z = z;
         }
+
+        public override string ToString()
+        {
+            return $"({X}, {Y}, {Z})";
+        }
     }
 }

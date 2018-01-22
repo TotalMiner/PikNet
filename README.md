@@ -1,6 +1,9 @@
 # TotalMiner-Network
 Total Miner MP: Server Program
 
+# Info
+This server application is developed alongside the [TMFMP Mod](https://github.com/XBLToothPik/TotalMiner-Network---Mod)
+
 Built in Visual Studio 2017.  Targetting .NET Framework 4.6.1
 
 

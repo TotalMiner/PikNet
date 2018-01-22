@@ -53,29 +53,16 @@ namespace TotalMiner_Network.Core.Network
         #endregion
 
         #region Threadded Functions
+       
         private void RunMasterServer()
         {
             Console.WriteLine("[MASTER] Server Running");
 
-            #region Async
-            AsyncCallback AcceptClients = new AsyncCallback((IAsyncResult res) => 
-            {
-                try
-                {
-                    TcpClient clientSocket = ServerListener.EndAcceptTcpClient(res);
-                    Master_ProcessNewClient(clientSocket);
-                }
-                catch
-                {
-                    Console.WriteLine("BeginAcceptTcpClient Error");
-                }
-
-            });
-            #endregion
 
             while (ServerRunning)
             {
-                ServerListener.BeginAcceptTcpClient(AcceptClients, ServerListener);
+                ServerListener.BeginAcceptTcpClient(AcceptClientCallBack, ServerListener);
+              
                 if (AllSessions.Count > 0)
                 {
                     for (int i = 0; i < AllSessions.Count; i++)
@@ -84,14 +71,29 @@ namespace TotalMiner_Network.Core.Network
                         Session curSes = AllSessions[i];
                         if (!curSes.SessionOpen)
                         {
+                            
                             curSes.CloseSession();
-
+                          
                             AllSessions.Remove(curSes);
-                            Console.WriteLine($"[MASTER] Closed and Removed Session \"{curSes.HostName}\"");
+                            GC.Collect();
+                            Console.WriteLine($"[MASTER] Closed and Removed Session \"{curSes.Properties.HostName}\"");
                         }
                     }
                 }
                 WaitHandler.WaitOne(1);
+            }
+            WaitHandler.Dispose();
+        }
+        private void AcceptClientCallBack(IAsyncResult res)
+        {
+            try
+            {
+                TcpClient clientSocket = ServerListener.EndAcceptTcpClient(res);
+                Master_ProcessNewClient(clientSocket);
+            }
+            catch
+            {
+                Console.WriteLine("BeginAcceptTcpClient Error");
             }
         }
         #endregion
@@ -99,13 +101,25 @@ namespace TotalMiner_Network.Core.Network
         #region Processing
         private void Master_ProcessNewClient(TcpClient targetClient)
         {
-            BinaryReader reader = new BinaryReader(targetClient.GetStream());
-            Master_Server_Op_In op = (Master_Server_Op_In)reader.ReadByte();
-            switch (op)
+            try
             {
-                case Master_Server_Op_In.Connect:
-                    Master_Process_Connect(targetClient);
-                    break;
+                BinaryReader reader = new BinaryReader(targetClient.GetStream());
+                Master_Server_Op_In op = (Master_Server_Op_In)reader.ReadByte();
+                switch (op)
+                {
+                    case Master_Server_Op_In.Connect:
+                        Master_Process_Connect(targetClient);
+                        break;
+                }
+            }
+            catch
+            {
+                try
+                {
+                    targetClient.Close();
+                }
+                catch { }
+                Console.WriteLine("[MASTER] Error Processing New Client.  Shutting Down Connection");
             }
         }
         private void Master_Process_Connect(TcpClient target)
@@ -134,7 +148,6 @@ namespace TotalMiner_Network.Core.Network
                 BinaryWriter writer = new BinaryWriter(target.GetStream());
 
                 int sessID = reader.ReadInt32();
-                int exeVersion = reader.ReadInt32();
                 short gid = reader.ReadInt16();
                 string pName = reader.ReadString();
 
@@ -151,7 +164,7 @@ namespace TotalMiner_Network.Core.Network
                         PID = gid,
                     };
 
-                    YesNo valid = targetSession.AddPlayer(newPlayer) && exeVersion == targetSession.EXEVersion 
+                    YesNo valid = targetSession.AddPlayer(newPlayer)
                         ? YesNo.Yes 
                         : YesNo.No;
                     writer.Write((byte)valid);
@@ -172,6 +185,7 @@ namespace TotalMiner_Network.Core.Network
                                 writer.Write(cPlayer.IsHost);
                             }
                         }
+                        Console.WriteLine($"[SESSION] Player {newPlayer.Name} Has Joined Session {targetSession.Properties.HostName}");
                         writer.Flush();
                     }
                 }
@@ -188,13 +202,9 @@ namespace TotalMiner_Network.Core.Network
             BinaryReader reader = new BinaryReader(target.GetStream());
             BinaryWriter writer = new BinaryWriter(target.GetStream());
 
-            int exeVersion = reader.ReadInt32();
-            short hostGID = reader.ReadInt16();
-            string hostName = reader.ReadString();
-            NetworkSessionType type = (NetworkSessionType)reader.ReadByte();
-            NetworkSessionState state = (NetworkSessionState)reader.ReadByte();
+            SessionProperties newProperties = SessionProperties.Read(reader);
 
-            Session newSession = new Session(hostName, hostGID, exeVersion, type, state);
+            Session newSession = new Session(newProperties);
             writer.Write((byte)Master_Server_Op_Out.Connect);
             writer.Write((byte)Master_server_ConnectionType.CreateSession);
             YesNo good = AddSession(newSession) ? YesNo.Yes : YesNo.No;
@@ -202,11 +212,11 @@ namespace TotalMiner_Network.Core.Network
             writer.Write((byte)good);
             if (good == YesNo.Yes)
             {
-                writer.Write(newSession.SessionID);
-                Player newPlayer = new Player(hostName)
+                writer.Write(newSession.Properties.HostName);
+                Player newPlayer = new Player(newSession.Properties.HostName)
                 {
                     IsHost = true,
-                    PID = hostGID,
+                    PID = newSession.Properties.HostID,
                     Connection = target
                 };
                 newSession.AddPlayer(newPlayer);
@@ -216,27 +226,19 @@ namespace TotalMiner_Network.Core.Network
         }
         private void Master_Process_Connect_GetSessions(TcpClient target)
         {
-            //Console.WriteLine("[MASTER] Sending Sessions To Target");
             BinaryReader reader = new BinaryReader(target.GetStream());
             BinaryWriter writer = new BinaryWriter(target.GetStream());
-            int exeVersion = reader.ReadInt32();
+            //int exeVersion = reader.ReadInt32();
 
-            List<Session> sessionsWithVer = GetSessionsWithEXEVersion(exeVersion);
+            List<Session> sessions = AllSessions;
 
             writer.Write((byte)Master_Server_Op_Out.Connect);
             writer.Write((byte)Master_server_ConnectionType.GetSessions);
-            writer.Write(sessionsWithVer.Count);
-            for (int i = 0; i < sessionsWithVer.Count; i++)
+            writer.Write(sessions.Count);
+            for (int i = 0; i < sessions.Count; i++)
             {
-                Session curSes = sessionsWithVer[i];
-
-                writer.Write(curSes.HostName);
-                writer.Write(curSes.HostGID);
-                writer.Write(curSes.EXEVersion);
-                writer.Write(curSes.SessionID);
-                writer.Write(curSes.Players.Count);
-                writer.Write((byte)curSes.SessionState);
-                writer.Write((byte)curSes.Sessiontype);
+                Session curSes = sessions[i];
+                curSes.Properties.Write(writer);
             }
         }
         #endregion
@@ -246,9 +248,9 @@ namespace TotalMiner_Network.Core.Network
         {
             lock (AllSessions)
             {
-                if (target.Sessiontype == NetworkSessionType.PlayerMatch && target.HostName.Length <= 15)
+                if (target.Properties.NetType == NetworkSessionType.PlayerMatch && target.Properties.HostName.Length <= 15)
                 {
-                    target.SessionID = SessionIDCounter++;
+                    target.Properties.SessionID = SessionIDCounter++;
                     target.CreateThreads();
                     target.Start();
 
@@ -261,7 +263,7 @@ namespace TotalMiner_Network.Core.Network
         private Session GetSession(int id)
         {
             for (int i = 0; i < AllSessions.Count; i++)
-                if (AllSessions[i].SessionID == id)
+                if (AllSessions[i].Properties.SessionID == id)
                     return AllSessions[i];
             return null;
         }
@@ -271,7 +273,7 @@ namespace TotalMiner_Network.Core.Network
             for (int i = 0; i < AllSessions.Count; i++)
             {
                 Session session = AllSessions[i];
-                if (session.EXEVersion == ver && session.SessionOpen)
+                if (session.Properties.ExeVersion == ver && session.SessionOpen)
                     toRet.Add(session);
             }
             return toRet;

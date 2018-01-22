@@ -150,6 +150,14 @@ public enum NetworkSessionState
     Playing = 1,
     Ended = 2,
 }
+public enum SessionType
+{
+    Play = 0,
+    ShareMap = 1,
+    SharePhoto = 2,
+    ShareComPack = 3,
+    Server = 4,
+}
 public enum NetworkSessionType
 {
     Local = 0,
@@ -180,6 +188,24 @@ public enum MapAttribute
     WorkInProgress,
     zLast,
     AvatarDesigner
+}
+[Flags]
+public enum Permissions
+{
+    None = 0,
+    Adventure = 1,
+    Edit = 2,
+    Creative = 4,
+    Fly = 8,
+    Map = 16,
+    Save = 32,
+    Admin = 64,
+    Grief = 128,
+    VoiceChat = 256,
+    Spectate = 512,
+    SystemShops = 1024,
+    ViewScripts = 2048,
+    TextChat = 4096,
 }
 public enum Master_Server_Op_In
 {

@@ -47,8 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\AppGlobals.cs" />
     <Compile Include="Core\Data\DataPacketReader.cs" />
     <Compile Include="Core\Data\DataPacketWriter.cs" />
+    <Compile Include="Core\Network\SessionProperties.cs" />
     <Compile Include="Core\Enum\Enums.cs" />
     <Compile Include="Core\Data\GlobalPoint3D.cs" />
     <Compile Include="Core\Data\MemBuffer.cs" />

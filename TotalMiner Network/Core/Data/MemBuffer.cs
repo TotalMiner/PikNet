@@ -78,6 +78,7 @@ namespace TotalMiner_Network.Core.Data
             BinaryWriter writer = new BinaryWriter(this.StreamBuffer);
             writer.Write(data);
             this.Add(this.StreamBuffer.ToArray());
+
             ClearStreamBuffer();
         }
         public void Add(Vector3 vec)
@@ -102,7 +103,7 @@ namespace TotalMiner_Network.Core.Data
         {
             Data.Clear();
         }
-        public void CleatDataAndBuffer()
+        public void ClearDataAndBuffer()
         {
             Data.Clear();
             _Buffer.Clear();
@@ -122,6 +123,7 @@ namespace TotalMiner_Network.Core.Data
                         Array.Copy(_thisData, 0, _dataToSend, curSize, _thisData.Length);
                         curSize += _thisData.Length;
                     }
+                    ClearDataAndBuffer();
                     xOut.Write(_dataToSend, 0, _dataToSend.Length);
                 }
                 else

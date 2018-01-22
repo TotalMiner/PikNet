@@ -25,70 +25,22 @@ namespace TotalMiner_Network.Core.Network
         #endregion
 
         #region Session Detail Vars
-        public int SessionID;
-        public bool SessionOpen;
-
-        private int _EXEVersion;
-        private string _HostName;
-        private short _HostGID;
-
-        private NetworkSessionType _SessionType;
-        public NetworkSessionType Sessiontype
-        {
-            get
-            {
-                return _SessionType;
-            }
-        }
-
-        private NetworkSessionState _SessionState;
-        public NetworkSessionState SessionState
-        {
-            get
-            {
-                return _SessionState;
-            }
-        }
-
-        public int EXEVersion
-        {
-            get
-            {
-                return _EXEVersion;
-            }
-        }
-        public string HostName
-        {
-            get
-            {
-                return _HostName;
-            }
-        }
-        public short HostGID
-        {
-            get
-            {
-                return _HostGID;
-            }
-        }
+        public SessionProperties Properties;
         #endregion
 
         #region Session Vars
+        public bool SessionOpen = false;
         public Player HostPlayer { get; set; }
         public List<Player> Players { get; set; }
         public List<Player> PlayersToRemove { get; set; }
         #endregion
 
         #region CTORS
-        public Session(string hostName, short gid, int exevErsion, NetworkSessionType type, NetworkSessionState state)
+        public Session(SessionProperties properties)
         {
             Players = new List<Player>(64);
             PlayersToRemove = new List<Player>(64);
-            _HostName = hostName;
-            _HostGID = gid;
-            _EXEVersion = exevErsion;
-            _SessionType = type;
-            _SessionState = state;
+            Properties = properties;
         }
         #endregion
 
@@ -107,17 +59,26 @@ namespace TotalMiner_Network.Core.Network
         {
             SessionOpen = false;
             DoRunThread = false;
+            WaitHandler.Dispose();
             for (int i = 0; i < Players.Count; i++)
             {
                 Player cPlayer = Players[i];
-                try
+              
+                if (cPlayer != null)
                 {
-                    if (cPlayer.Connected)
-                        cPlayer.Connection.Close();
-                }
-                catch
-                {
-                    Console.WriteLine($"[SESSION] (shutdown) \"{this.HostName}\" could not close Player \"{cPlayer.Name}\"'s connection.  This is probably OK");
+                
+                    try
+                    {
+                        cPlayer.Reader.Close();
+                        cPlayer.Writer.Close();
+                        cPlayer.OutBuffer.ClearDataAndBuffer();
+                        if (cPlayer.Connected)
+                            cPlayer.Connection.Close();
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"[SESSION] (shutdown) \"{this.Properties.HostName}\" could not close Player \"{cPlayer.Name}\"'s connection.  This is probably OK");
+                    }
                 }
             }
             Players.Clear();
@@ -163,7 +124,7 @@ namespace TotalMiner_Network.Core.Network
         #region Session Processing Methods
         private void Process()
         {
-            Console.WriteLine($"[SESSION] Session {HostName} Now Processing");
+            Console.WriteLine($"[SESSION] Session {Properties.HostName} Now Processing");
             while (this.DoRunThread)
             {
                 try
@@ -252,7 +213,7 @@ namespace TotalMiner_Network.Core.Network
                         ProcessPlayerData_Internal(target);
                         break;
                     default:
-                        throw new Exception($"[SESSION] Invalid PacketType from Player \"{target.Name}\" In Session \"{this.HostName}\"");
+                        throw new Exception($"[SESSION] Invalid PacketType from Player \"{target.Name}\" In Session \"{this.Properties.HostName}\"");
                 }
             }
             catch (Exception ex)
@@ -337,7 +298,8 @@ namespace TotalMiner_Network.Core.Network
             if (sourcePlayer.IsHost)
             {
                 NetworkSessionState newState = (NetworkSessionState)sourcePlayer.Reader.ReadByte();
-                Console.WriteLine($"[SESSION] Session \"{this.HostName}\"'s host \"{sourcePlayer.Name}\" Updated Session State To {newState.ToString()}");
+                this.Properties.SessionState = newState;
+                Console.WriteLine($"[SESSION] Session \"{this.Properties.HostName}\"'s host \"{sourcePlayer.Name}\" Updated Session State To {newState.ToString()}");
                 ProcessOut_SendAll_SessionStateUpdate(sourcePlayer, newState);
             }
         }

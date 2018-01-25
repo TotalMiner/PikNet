@@ -232,11 +232,8 @@ namespace TotalMiner_Network.Core.Network
             int len = sourcePlayer.Reader.ReadInt32();
             byte[] _data = sourcePlayer.Reader.ReadBytes(len);
 
-           // DataPacket tp = new DataPacket(len);
-           // tp.SetData(_data);
-
             Player targetPlayer = this.GetPlayerByID(target);
-            if (targetPlayer == null || target == 0)
+            if (target == 0 || targetPlayer == null)
                 ProcessOut_SendAll_TMData(_data, sourcePlayer);
             else
                 ProcessOut_Send_TMDataToPlayer(sourcePlayer, targetPlayer, _data);

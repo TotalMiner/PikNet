@@ -66,7 +66,6 @@ namespace TotalMiner_Network.Core.Network
               
                 if (cPlayer != null)
                 {
-                
                     try
                     {
                         cPlayer.Reader.Close();
